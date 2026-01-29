@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { LayoutDashboard, UserPlus, FileText, Users, History, Menu, X, Wallet, Download, Search, Eye, ArrowRight, HandCoins, Layers, MapPin, Phone, FileDigit, Briefcase, DollarSign, User, FileDown, Building2, Filter, Pencil, Save, RotateCcw, Cloud, CloudOff, RefreshCw, LogOut } from 'lucide-react';
+import { LayoutDashboard, UserPlus, FileText, Users, History, Menu, X, Wallet, Download, Search, Eye, ArrowRight, HandCoins, Layers, MapPin, Phone, FileDigit, Briefcase, DollarSign, User, FileDown, Building2, Filter, Pencil, Save, RotateCcw, RefreshCw, LogOut } from 'lucide-react';
 import { Employee, PayrollRecord, View } from './types';
 import { supabase } from './supabaseClient';
 import EmployeeRegistration from './components/EmployeeRegistration';
@@ -63,6 +63,7 @@ const DetailItem = ({
           onChange={onChange as any}
           className="bg-gray-900 text-sm font-bold text-white border border-blue-500/30 rounded px-2 py-1 focus:outline-none focus:border-blue-500 w-full appearance-none"
         >
+          <option value="">Selecione...</option>
           <option value="CAMPLUVAS">CAMPLUVAS</option>
           <option value="LOCATEX">LOCATEX</option>
         </select>
@@ -80,7 +81,7 @@ const DetailItem = ({
       <span className="text-sm font-bold text-gray-200 truncate">
         {type === 'number' && typeof value === 'number' 
           ? value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) 
-          : value || '---'}
+          : (value !== undefined && value !== null && value !== '' ? value : '---')}
       </span>
     )}
   </div>
@@ -101,19 +102,44 @@ const App: React.FC = () => {
   const [editFormData, setEditFormData] = useState<Employee | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) fetchInitialData();
-      else setIsLoading(false);
-    });
+    let mounted = true;
+
+    const initAuth = async () => {
+      try {
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        
+        if (mounted) {
+          setSession(currentSession);
+          if (currentSession) {
+            await fetchInitialData();
+          } else {
+            setIsLoading(false);
+          }
+        }
+      } catch (err) {
+        console.error("Erro ao inicializar autenticação:", err);
+        if (mounted) setIsLoading(false);
+      }
+    };
+
+    initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session) fetchInitialData();
-      else setIsLoading(false);
+      if (mounted) {
+        setSession(session);
+        if (session) {
+          fetchInitialData();
+        } else {
+          setIsLoading(false);
+        }
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const mapEmployeeToDB = (emp: Omit<Employee, 'id'>) => ({
@@ -159,8 +185,8 @@ const App: React.FC = () => {
     pis: db.pis,
     voterId: db.voter_id,
     role: db.role,
-    salary: Number(db.salary),
-    roleAccumulation: Number(db.role_accumulation)
+    salary: Number(db.salary || 0),
+    roleAccumulation: Number(db.role_accumulation || 0)
   });
 
   const mapPayrollToDB = (record: Omit<PayrollRecord, 'id'>) => ({
@@ -222,7 +248,7 @@ const App: React.FC = () => {
       setEmployees((empData || []).map(mapDBToEmployee));
       setPayrollRecords((payData || []).map(mapDBToPayroll));
     } catch (error) {
-      console.error('Erro ao buscar dados:', error);
+      console.error('Erro ao buscar dados do banco:', error);
     } finally {
       setIsLoading(false);
     }
@@ -385,9 +411,9 @@ const App: React.FC = () => {
 
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'} p-8`}>
         {isLoading ? (
-          <div className="h-full flex flex-col items-center justify-center space-y-4">
+          <div className="h-full flex flex-col items-center justify-center space-y-4 pt-40">
              <RefreshCw className="w-12 h-12 text-blue-500 animate-spin" />
-             <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Carregando dados...</p>
+             <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Conectando ao sistema...</p>
           </div>
         ) : (
           <div className="max-w-full mx-auto">
@@ -439,6 +465,11 @@ const App: React.FC = () => {
                         </button>
                       </div>
                     ))}
+                    {filteredEmployees.length === 0 && (
+                      <div className="col-span-full py-20 text-center border-2 border-dashed border-gray-800 rounded-3xl">
+                        <p className="text-gray-600 font-bold uppercase tracking-widest">Nenhum colaborador encontrado.</p>
+                      </div>
+                    )}
                  </div>
                </div>
             )}
@@ -467,6 +498,11 @@ const App: React.FC = () => {
                             </tr>
                           );
                         })}
+                        {payrollRecords.length === 0 && (
+                          <tr>
+                            <td colSpan={3} className="px-6 py-10 text-center text-gray-600 italic">Sem registros históricos.</td>
+                          </tr>
+                        )}
                      </tbody>
                    </table>
                 </div>
