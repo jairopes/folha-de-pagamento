@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { LayoutDashboard, UserPlus, FileText, Users, History, Menu, X, Wallet, Download, Search, Eye, ArrowRight, HandCoins, Layers, MapPin, Phone, FileDigit, Briefcase, DollarSign, User, FileDown, Building2, Filter, Pencil, Save, RotateCcw, RefreshCw, LogOut } from 'lucide-react';
+import { LayoutDashboard, UserPlus, FileText, Users, History, Menu, X, Wallet, Search, Eye, HandCoins, Layers, MapPin, FileDigit, Briefcase, DollarSign, User, Pencil, Save, RotateCcw, RefreshCw, LogOut } from 'lucide-react';
 import { Employee, PayrollRecord, View } from './types';
 import { supabase } from './supabaseClient';
 import EmployeeRegistration from './components/EmployeeRegistration';
@@ -50,9 +50,9 @@ const DetailItem = ({
   onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void,
   type?: string
 }) => (
-  <div className="flex flex-col gap-1 p-3 bg-black/30 rounded-xl border border-gray-800/50 hover:border-gray-700 transition-colors">
+  <div className="flex flex-col gap-1 p-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-blue-400 transition-colors">
     <div className="flex items-center gap-2">
-      {icon && <span className="text-gray-600">{icon}</span>}
+      {icon && <span className="text-gray-400">{icon}</span>}
       <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{label}</span>
     </div>
     {isEditing && name ? (
@@ -61,7 +61,7 @@ const DetailItem = ({
           name={name}
           value={value}
           onChange={onChange as any}
-          className="bg-gray-900 text-sm font-bold text-white border border-blue-500/30 rounded px-2 py-1 focus:outline-none focus:border-blue-500 w-full appearance-none"
+          className="bg-white text-sm font-bold text-gray-900 border border-blue-500/30 rounded px-2 py-1 focus:outline-none focus:border-blue-500 w-full appearance-none"
         >
           <option value="">Selecione...</option>
           <option value="CAMPLUVAS">CAMPLUVAS</option>
@@ -74,11 +74,11 @@ const DetailItem = ({
           value={value}
           onChange={onChange}
           step={type === 'number' ? '0.01' : undefined}
-          className="bg-gray-900 text-sm font-bold text-white border border-blue-500/30 rounded px-2 py-1 focus:outline-none focus:border-blue-500 w-full"
+          className="bg-white text-sm font-bold text-gray-900 border border-blue-500/30 rounded px-2 py-1 focus:outline-none focus:border-blue-500 w-full"
         />
       )
     ) : (
-      <span className="text-sm font-bold text-gray-200 truncate">
+      <span className="text-sm font-bold text-gray-900 truncate">
         {type === 'number' && typeof value === 'number' 
           ? value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) 
           : (value !== undefined && value !== null && value !== '' ? value : '---')}
@@ -381,28 +381,28 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex bg-[#0a0a0a] text-gray-100">
-      <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} transition-all duration-300 border-r border-gray-800 bg-[#111] flex flex-col fixed h-full z-50`}>
-        <div className="p-6 flex items-center justify-between border-b border-gray-800">
+    <div className="min-h-screen flex bg-[#FFB100] text-gray-900 transition-colors duration-500">
+      <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} transition-all duration-300 border-r border-gray-200 bg-white flex flex-col fixed h-full z-50 shadow-xl`}>
+        <div className="p-6 flex items-center justify-between border-b border-gray-100">
           <div className={`flex items-center gap-3 ${!isSidebarOpen && 'hidden'}`}>
-            <div className="bg-blue-600 p-2 rounded-lg"><Wallet className="text-white" size={24} /></div>
-            <span className="font-bold text-lg tracking-tight">RH Master</span>
+            <div className="bg-gray-900 p-2 rounded-lg"><Wallet className="text-[#FFB100]" size={24} /></div>
+            <span className="font-black text-lg tracking-tight text-gray-900">RH Master</span>
           </div>
-          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-1 hover:bg-gray-800 rounded-md transition-colors">
+          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-1 hover:bg-gray-100 rounded-md transition-colors text-gray-600">
             {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
         <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
           {menuItems.map((item) => (
-            <button key={item.id} onClick={() => setActiveView(item.id as View)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeView === item.id ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800'}`}>
+            <button key={item.id} onClick={() => setActiveView(item.id as View)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeView === item.id ? 'bg-gray-900 text-white shadow-lg' : 'text-gray-500 hover:bg-gray-100'}`}>
               {item.icon}
-              {isSidebarOpen && <span className="font-medium">{item.label}</span>}
+              {isSidebarOpen && <span className="font-bold">{item.label}</span>}
             </button>
           ))}
         </nav>
         {isSidebarOpen && (
-          <div className="p-6 border-t border-gray-800">
-            <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-900/10 transition-all font-bold text-sm">
+          <div className="p-6 border-t border-gray-100">
+            <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-all font-black text-sm">
               <LogOut size={18} /> Sair do Sistema
             </button>
           </div>
@@ -412,8 +412,8 @@ const App: React.FC = () => {
       <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'} p-8`}>
         {isLoading ? (
           <div className="h-full flex flex-col items-center justify-center space-y-4 pt-40">
-             <RefreshCw className="w-12 h-12 text-blue-500 animate-spin" />
-             <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Conectando ao sistema...</p>
+             <RefreshCw className="w-12 h-12 text-gray-900 animate-spin" />
+             <p className="text-gray-900 font-black uppercase tracking-widest text-xs">Conectando ao sistema...</p>
           </div>
         ) : (
           <div className="max-w-full mx-auto">
@@ -425,22 +425,22 @@ const App: React.FC = () => {
             {activeView === 'EMPLOYEE_LIST' && (
                <div className="space-y-6">
                  <header className="flex justify-between items-center">
-                    <h1 className="text-3xl font-black">Colaboradores</h1>
+                    <h1 className="text-3xl font-black text-gray-900">Colaboradores</h1>
                     <div className="flex gap-4">
                        <div className="relative">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600" size={16} />
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                           <input 
                             type="text" 
                             placeholder="Buscar por nome..."
                             value={employeeSearchTerm}
                             onChange={(e) => setEmployeeSearchTerm(e.target.value)}
-                            className="bg-[#111] border border-gray-800 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-blue-500 transition-all"
+                            className="bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-gray-900 transition-all shadow-sm"
                           />
                        </div>
                        <select
                          value={employeeCompanyFilter}
                          onChange={(e) => setEmployeeCompanyFilter(e.target.value)}
-                         className="bg-[#111] border border-gray-800 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500 transition-all"
+                         className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-gray-900 transition-all shadow-sm"
                        >
                          <option value="">Todas Empresas</option>
                          <option value="CAMPLUVAS">CAMPLUVAS</option>
@@ -450,23 +450,23 @@ const App: React.FC = () => {
                  </header>
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredEmployees.map(emp => (
-                      <div key={emp.id} className="bg-[#111] p-6 rounded-[2rem] border border-gray-800 flex flex-col justify-between hover:border-blue-500/50 transition-all group shadow-sm">
+                      <div key={emp.id} className="bg-white p-6 rounded-[2rem] border border-gray-100 flex flex-col justify-between hover:border-gray-900 transition-all group shadow-lg">
                         <div>
                           <div className="flex justify-between items-start mb-1">
-                            <h3 className="font-black text-xl text-white group-hover:text-blue-400 transition-colors">{emp.name}</h3>
-                            <span className={`text-[9px] px-2 py-0.5 rounded-full font-black ${emp.company === 'CAMPLUVAS' ? 'bg-blue-900/30 text-blue-400' : 'bg-purple-900/30 text-purple-400'}`}>
+                            <h3 className="font-black text-xl text-gray-900 group-hover:text-blue-600 transition-colors">{emp.name}</h3>
+                            <span className={`text-[9px] px-2 py-0.5 rounded-full font-black ${emp.company === 'CAMPLUVAS' ? 'bg-blue-100 text-blue-600' : 'bg-purple-100 text-purple-600'}`}>
                               {emp.company}
                             </span>
                           </div>
-                          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{emp.role}</p>
+                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{emp.role}</p>
                         </div>
-                        <button onClick={() => { setSelectedEmployeeDetail(emp); setEditFormData(emp); setIsEditingEmployee(false); }} className="mt-4 py-3 bg-gray-900 rounded-xl text-xs font-black uppercase flex items-center justify-center gap-2 hover:bg-blue-600 hover:text-white transition-all shadow-inner">
+                        <button onClick={() => { setSelectedEmployeeDetail(emp); setEditFormData(emp); setIsEditingEmployee(false); }} className="mt-4 py-3 bg-gray-50 rounded-xl text-xs font-black uppercase flex items-center justify-center gap-2 hover:bg-gray-900 hover:text-white transition-all shadow-sm">
                           <Eye size={14} /> Detalhes
                         </button>
                       </div>
                     ))}
                     {filteredEmployees.length === 0 && (
-                      <div className="col-span-full py-20 text-center border-2 border-dashed border-gray-800 rounded-3xl">
+                      <div className="col-span-full py-20 text-center border-2 border-dashed border-gray-300 rounded-3xl bg-white/30">
                         <p className="text-gray-600 font-bold uppercase tracking-widest">Nenhum colaborador encontrado.</p>
                       </div>
                     )}
@@ -476,31 +476,31 @@ const App: React.FC = () => {
             {activeView === 'PAYROLL_HISTORY' && (
               <div className="space-y-6">
                 <header className="flex justify-between items-center">
-                  <h1 className="text-3xl font-black">Histórico</h1>
+                  <h1 className="text-3xl font-black text-gray-900">Histórico</h1>
                 </header>
-                <div className="bg-[#111] border border-gray-800 rounded-2xl overflow-hidden">
+                <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-xl">
                    <table className="w-full text-left">
-                     <thead className="bg-gray-900/50 text-gray-500 text-[10px] uppercase font-bold tracking-widest">
+                     <thead className="bg-gray-50 text-gray-500 text-[10px] uppercase font-black tracking-widest">
                        <tr>
                          <th className="px-6 py-4">Empresa</th>
                          <th className="px-6 py-4">Funcionário</th>
                          <th className="px-6 py-4">Referência</th>
                        </tr>
                      </thead>
-                     <tbody className="divide-y divide-gray-800 text-sm">
+                     <tbody className="divide-y divide-gray-100 text-sm">
                         {payrollRecords.map(record => {
                           const emp = employees.find(e => e.id === record.employeeId);
                           return (
-                            <tr key={record.id}>
-                              <td className="px-6 py-4 font-bold">{emp?.company}</td>
-                              <td className="px-6 py-4">{emp?.name}</td>
-                              <td className="px-6 py-4 font-mono">{record.closingDate}</td>
+                            <tr key={record.id} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-6 py-4 font-black text-gray-900">{emp?.company}</td>
+                              <td className="px-6 py-4 text-gray-600">{emp?.name}</td>
+                              <td className="px-6 py-4 font-mono font-bold text-blue-600">{record.closingDate}</td>
                             </tr>
                           );
                         })}
                         {payrollRecords.length === 0 && (
                           <tr>
-                            <td colSpan={3} className="px-6 py-10 text-center text-gray-600 italic">Sem registros históricos.</td>
+                            <td colSpan={3} className="px-6 py-10 text-center text-gray-400 italic">Sem registros históricos.</td>
                           </tr>
                         )}
                      </tbody>
@@ -513,18 +513,18 @@ const App: React.FC = () => {
       </main>
 
       {selectedEmployeeDetail && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl animate-in fade-in duration-300">
-          <div className="bg-[#111] border border-gray-800 w-full max-w-5xl rounded-[2.5rem] overflow-hidden flex flex-col max-h-[90vh] shadow-2xl">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white border border-gray-200 w-full max-w-5xl rounded-[2.5rem] overflow-hidden flex flex-col max-h-[90vh] shadow-2xl">
             {/* Header Modal */}
-            <div className="p-8 border-b border-gray-800 flex justify-between items-center bg-gray-900/20">
+            <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50">
               <div className="flex-1">
-                <h2 className="text-3xl font-black truncate">{isEditingEmployee ? 'Editando Colaborador' : selectedEmployeeDetail.name}</h2>
+                <h2 className="text-3xl font-black text-gray-900 truncate">{isEditingEmployee ? 'Editando Colaborador' : selectedEmployeeDetail.name}</h2>
                 <div className="flex items-center gap-3 mt-1">
-                  <span className="text-xs text-gray-500 font-bold uppercase tracking-widest">
+                  <span className="text-xs text-gray-400 font-bold uppercase tracking-widest">
                     ID: {selectedEmployeeDetail.id.slice(0, 8)}...
                   </span>
-                  <div className="w-1 h-1 bg-gray-700 rounded-full"></div>
-                  <span className="text-xs text-blue-500 font-bold uppercase tracking-widest">
+                  <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
+                  <span className="text-xs text-blue-600 font-black uppercase tracking-widest">
                     {selectedEmployeeDetail.company}
                   </span>
                 </div>
@@ -533,7 +533,7 @@ const App: React.FC = () => {
                 {!isEditingEmployee ? (
                   <button 
                     onClick={() => setIsEditingEmployee(true)}
-                    className="p-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-white transition-all shadow-lg shadow-blue-900/20 flex items-center gap-2 font-bold text-xs uppercase"
+                    className="p-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-white transition-all shadow-lg flex items-center gap-2 font-bold text-xs uppercase"
                     title="Editar Cadastro"
                   >
                     <Pencil size={18} /> <span className="hidden md:inline">Editar</span>
@@ -542,24 +542,24 @@ const App: React.FC = () => {
                   <>
                     <button 
                       onClick={() => setIsEditingEmployee(false)}
-                      className="p-3 bg-gray-800 hover:bg-gray-700 rounded-xl text-gray-300 transition-all flex items-center gap-2 font-bold text-xs uppercase"
+                      className="p-3 bg-gray-200 hover:bg-gray-300 rounded-xl text-gray-700 transition-all flex items-center gap-2 font-bold text-xs uppercase"
                       title="Cancelar"
                     >
                       <RotateCcw size={18} /> <span className="hidden md:inline">Cancelar</span>
                     </button>
                     <button 
                       onClick={handleUpdateEmployee}
-                      className="p-3 bg-green-600 hover:bg-green-500 rounded-xl text-white transition-all shadow-lg shadow-green-900/20 flex items-center gap-2 font-bold text-xs uppercase"
+                      className="p-3 bg-green-600 hover:bg-green-500 rounded-xl text-white transition-all shadow-lg flex items-center gap-2 font-bold text-xs uppercase"
                       title="Salvar Alterações"
                     >
                       <Save size={18} /> <span className="hidden md:inline">Salvar</span>
                     </button>
                   </>
                 )}
-                <div className="w-px h-8 bg-gray-800 mx-1"></div>
+                <div className="w-px h-8 bg-gray-200 mx-1"></div>
                 <button 
                   onClick={() => { setSelectedEmployeeDetail(null); setIsEditingEmployee(false); }} 
-                  className="p-3 hover:bg-red-900/20 text-gray-400 hover:text-red-500 rounded-xl transition-all"
+                  className="p-3 hover:bg-red-50 text-gray-400 hover:text-red-600 rounded-xl transition-all"
                 >
                   <X size={24} />
                 </button>
@@ -567,12 +567,12 @@ const App: React.FC = () => {
             </div>
 
             {/* Content Modal */}
-            <div className="p-8 overflow-y-auto flex-1 space-y-12">
+            <div className="p-8 overflow-y-auto flex-1 space-y-12 bg-white">
                {/* Seção Contratual */}
                <section>
                  <div className="flex items-center gap-2 mb-6">
-                   <Briefcase size={16} className="text-blue-500" />
-                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">Dados do Contrato</h3>
+                   <Briefcase size={16} className="text-gray-900" />
+                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400">Dados do Contrato</h3>
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="company" label="Empresa" value={isEditingEmployee ? editFormData?.company || '' : selectedEmployeeDetail.company} />
@@ -585,8 +585,8 @@ const App: React.FC = () => {
                {/* Seção Pessoal */}
                <section>
                  <div className="flex items-center gap-2 mb-6">
-                   <User size={16} className="text-blue-500" />
-                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">Informações Pessoais</h3>
+                   <User size={16} className="text-gray-900" />
+                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400">Informações Pessoais</h3>
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="md:col-span-2">
@@ -602,8 +602,8 @@ const App: React.FC = () => {
                {/* Seção Endereço */}
                <section>
                  <div className="flex items-center gap-2 mb-6">
-                   <MapPin size={16} className="text-blue-500" />
-                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">Endereço Residencial</h3>
+                   <MapPin size={16} className="text-gray-900" />
+                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400">Endereço Residencial</h3>
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="md:col-span-2">
@@ -618,8 +618,8 @@ const App: React.FC = () => {
                {/* Seção Documentos */}
                <section>
                  <div className="flex items-center gap-2 mb-6">
-                   <FileDigit size={16} className="text-blue-500" />
-                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">Documentação</h3>
+                   <FileDigit size={16} className="text-gray-900" />
+                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400">Documentação</h3>
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="cpf" label="CPF" value={isEditingEmployee ? editFormData?.cpf || '' : selectedEmployeeDetail.cpf} />
@@ -631,10 +631,10 @@ const App: React.FC = () => {
                </section>
 
                {/* Seção Financeira */}
-               <section className="bg-blue-600/5 p-8 rounded-[2.5rem] border border-blue-500/10">
+               <section className="bg-gray-50 p-8 rounded-[2.5rem] border border-gray-200">
                  <div className="flex items-center gap-2 mb-6">
-                   <DollarSign size={18} className="text-blue-400" />
-                   <h3 className="text-sm font-black uppercase tracking-[0.2em] text-blue-400">Remuneração Base Mensal</h3>
+                   <DollarSign size={18} className="text-gray-900" />
+                   <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gray-900">Remuneração Base Mensal</h3>
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <DetailItem 
@@ -658,8 +658,8 @@ const App: React.FC = () => {
             </div>
             
             {/* Footer Modal Info */}
-            <div className="p-4 bg-gray-900/40 border-t border-gray-800 text-center">
-               <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">
+            <div className="p-4 bg-gray-50 border-t border-gray-100 text-center">
+               <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest">
                  Alterações salariais e de cargo impactam novos fechamentos de folha.
                </p>
             </div>

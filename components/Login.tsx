@@ -34,44 +34,44 @@ const Login: React.FC<Props> = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] px-4">
-      <div className="max-w-md w-full space-y-8 p-10 bg-[#111] border border-gray-800 rounded-[2.5rem] shadow-2xl">
+    <div className="min-h-screen flex items-center justify-center bg-[#FFB100] px-4 transition-colors duration-500">
+      <div className="max-w-md w-full space-y-8 p-10 bg-white border border-gray-100 rounded-[2.5rem] shadow-2xl">
         <div className="text-center">
-          <div className="inline-flex p-4 bg-blue-600 rounded-3xl text-white shadow-2xl shadow-blue-900/40 mb-6">
+          <div className="inline-flex p-4 bg-gray-900 rounded-3xl text-[#FFB100] shadow-2xl mb-6">
             <Wallet size={32} />
           </div>
-          <h2 className="text-3xl font-black tracking-tight text-white">RH Master</h2>
-          <p className="mt-2 text-sm text-gray-500 font-medium uppercase tracking-widest">Acesso Restrito à Empresa</p>
+          <h2 className="text-3xl font-black tracking-tight text-gray-900">RH Master</h2>
+          <p className="mt-2 text-sm text-gray-400 font-black uppercase tracking-widest">Acesso Restrito</p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <div className="space-y-4">
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="block w-full pl-12 pr-4 py-4 bg-black border border-gray-800 rounded-2xl text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all placeholder-gray-700"
+                className="block w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none transition-all placeholder-gray-400 font-medium"
                 placeholder="E-mail corporativo"
               />
             </div>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full pl-12 pr-4 py-4 bg-black border border-gray-800 rounded-2xl text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all placeholder-gray-700"
+                className="block w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none transition-all placeholder-gray-400 font-medium"
                 placeholder="Senha de acesso"
               />
             </div>
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 p-4 bg-red-900/10 border border-red-900/20 rounded-2xl text-red-500 text-xs font-bold animate-in fade-in slide-in-from-top-1">
+            <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-xs font-black animate-in fade-in slide-in-from-top-1">
               <AlertCircle size={16} />
               {error}
             </div>
@@ -80,7 +80,7 @@ const Login: React.FC<Props> = ({ onLoginSuccess }) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 py-4 px-6 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-sm transition-all shadow-xl shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-3 py-4 px-6 bg-gray-900 hover:bg-gray-800 text-white rounded-2xl font-black text-sm transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <Loader2 className="animate-spin" size={20} />
@@ -92,7 +92,7 @@ const Login: React.FC<Props> = ({ onLoginSuccess }) => {
           </button>
         </form>
         
-        <p className="text-center text-[10px] text-gray-600 font-bold uppercase tracking-widest">
+        <p className="text-center text-[10px] text-gray-400 font-black uppercase tracking-widest">
           RH MASTER SECURITY • SSL ENCRYPTED
         </p>
       </div>
