@@ -142,6 +142,24 @@ const App: React.FC = () => {
     };
   }, []);
 
+  const fetchInitialData = async () => {
+    setIsLoading(true);
+    try {
+      const { data: empData, error: empError } = await supabase.from('employees').select('*').order('name');
+      if (empError) throw empError;
+      
+      const { data: payData, error: payError } = await supabase.from('payroll_records').select('*').order('created_at', { ascending: false });
+      if (payError) throw payError;
+
+      setEmployees((empData || []).map(mapDBToEmployee));
+      setPayrollRecords((payData || []).map(mapDBToPayroll));
+    } catch (error) {
+      console.error('Erro ao buscar dados do banco:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const mapEmployeeToDB = (emp: Omit<Employee, 'id'>) => ({
     name: emp.name,
     company: emp.company,
@@ -236,24 +254,6 @@ const App: React.FC = () => {
     observations: db.observations || ""
   });
 
-  const fetchInitialData = async () => {
-    setIsLoading(true);
-    try {
-      const { data: empData, error: empError } = await supabase.from('employees').select('*').order('name');
-      if (empError) throw empError;
-      
-      const { data: payData, error: payError } = await supabase.from('payroll_records').select('*').order('created_at', { ascending: false });
-      if (payError) throw payError;
-
-      setEmployees((empData || []).map(mapDBToEmployee));
-      setPayrollRecords((payData || []).map(mapDBToPayroll));
-    } catch (error) {
-      console.error('Erro ao buscar dados do banco:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setEmployees([]);
@@ -268,22 +268,15 @@ const App: React.FC = () => {
         .insert([mapEmployeeToDB(employee)])
         .select();
       
-      if (error) {
-        if (error.code === '23505') {
-          alert("⚠️ Este CPF já está cadastrado no sistema.");
-          return;
-        }
-        throw error;
-      }
+      if (error) throw error;
 
       if (data) {
         setEmployees(prev => [...prev, mapDBToEmployee(data[0])]);
         setActiveView('EMPLOYEE_LIST');
-        alert("✅ Colaborador cadastrado com sucesso!");
+        alert("✅ Colaborador cadastrado!");
       }
     } catch (err: any) {
-      console.error(err);
-      alert(`❌ Erro ao salvar: ${err.message || 'Verifique sua conexão.'}`);
+      alert(`❌ Erro: ${err.message}`);
     }
   };
 
@@ -300,10 +293,9 @@ const App: React.FC = () => {
       setEmployees(prev => prev.map(emp => emp.id === editFormData.id ? editFormData : emp));
       setSelectedEmployeeDetail(editFormData);
       setIsEditingEmployee(false);
-      alert("✅ Cadastro atualizado!");
+      alert("✅ Atualizado!");
     } catch (err: any) {
-      console.error(err);
-      alert(`❌ Erro ao atualizar: ${err.message}`);
+      alert(`❌ Erro: ${err.message}`);
     }
   };
 
@@ -318,7 +310,6 @@ const App: React.FC = () => {
       if (data) {
         setPayrollRecords(prev => [mapDBToPayroll(data[0]), ...prev]);
         setActiveView('PAYROLL_HISTORY');
-        alert("✅ Folha individual lançada!");
       }
     } catch (err: any) {
       alert(`❌ Erro: ${err.message}`);
@@ -333,25 +324,11 @@ const App: React.FC = () => {
       if (data) {
         setPayrollRecords(prev => [...data.map(mapDBToPayroll), ...prev]);
         setActiveView('PAYROLL_HISTORY');
-        alert("✅ Lote de folhas salvo com sucesso!");
+        alert("✅ Lote salvo!");
       }
     } catch (err: any) {
       alert(`❌ Erro no lote: ${err.message}`);
     }
-  };
-
-  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    
-    let processedValue = value;
-    if (name === 'cep') {
-      processedValue = formatCEPMask(value);
-    }
-
-    setEditFormData(prev => prev ? {
-      ...prev,
-      [name]: type === 'number' ? parseFloat(processedValue) || 0 : processedValue
-    } : null);
   };
 
   const filteredEmployees = useMemo(() => {
@@ -373,7 +350,7 @@ const App: React.FC = () => {
     { id: 'BATCH_PAYROLL', label: 'Fechamento Mensal', icon: <Layers size={20} /> },
     { id: 'ADVANCES', label: 'Adiantamentos', icon: <HandCoins size={20} /> },
     { id: 'EMPLOYEE_LIST', label: 'Funcionários', icon: <Users size={20} /> },
-    { id: 'PAYROLL_HISTORY', label: 'Histórico de Pagamentos', icon: <History size={20} /> },
+    { id: 'PAYROLL_HISTORY', label: 'Histórico', icon: <History size={20} /> },
   ];
 
   if (!session && !isLoading) {
@@ -381,7 +358,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex bg-[#FFB100] text-gray-900 transition-colors duration-500">
+    <div className="min-h-screen flex bg-[#FFB100] text-gray-900">
       <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} transition-all duration-300 border-r border-gray-200 bg-white flex flex-col fixed h-full z-50 shadow-xl`}>
         <div className="p-6 flex items-center justify-between border-b border-gray-100">
           <div className={`flex items-center gap-3 ${!isSidebarOpen && 'hidden'}`}>
@@ -403,7 +380,7 @@ const App: React.FC = () => {
         {isSidebarOpen && (
           <div className="p-6 border-t border-gray-100">
             <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-all font-black text-sm">
-              <LogOut size={18} /> Sair do Sistema
+              <LogOut size={18} /> Sair
             </button>
           </div>
         )}
@@ -413,7 +390,7 @@ const App: React.FC = () => {
         {isLoading ? (
           <div className="h-full flex flex-col items-center justify-center space-y-4 pt-40">
              <RefreshCw className="w-12 h-12 text-gray-900 animate-spin" />
-             <p className="text-gray-900 font-black uppercase tracking-widest text-xs">Conectando ao sistema...</p>
+             <p className="text-gray-900 font-black uppercase tracking-widest text-xs">Conectando...</p>
           </div>
         ) : (
           <div className="max-w-full mx-auto">
@@ -427,22 +404,19 @@ const App: React.FC = () => {
                  <header className="flex justify-between items-center">
                     <h1 className="text-3xl font-black text-gray-900">Colaboradores</h1>
                     <div className="flex gap-4">
-                       <div className="relative">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                          <input 
-                            type="text" 
-                            placeholder="Buscar por nome..."
-                            value={employeeSearchTerm}
-                            onChange={(e) => setEmployeeSearchTerm(e.target.value)}
-                            className="bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-gray-900 transition-all shadow-sm"
-                          />
-                       </div>
+                       <input 
+                         type="text" 
+                         placeholder="Buscar..."
+                         value={employeeSearchTerm}
+                         onChange={(e) => setEmployeeSearchTerm(e.target.value)}
+                         className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm shadow-sm"
+                       />
                        <select
                          value={employeeCompanyFilter}
                          onChange={(e) => setEmployeeCompanyFilter(e.target.value)}
-                         className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-gray-900 transition-all shadow-sm"
+                         className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm shadow-sm"
                        >
-                         <option value="">Todas Empresas</option>
+                         <option value="">Todas</option>
                          <option value="CAMPLUVAS">CAMPLUVAS</option>
                          <option value="LOCATEX">LOCATEX</option>
                        </select>
@@ -450,14 +424,9 @@ const App: React.FC = () => {
                  </header>
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredEmployees.map(emp => (
-                      <div key={emp.id} className="bg-white p-6 rounded-[2rem] border border-gray-100 flex flex-col justify-between hover:border-gray-900 transition-all group shadow-lg">
+                      <div key={emp.id} className="bg-white p-6 rounded-[2rem] border border-gray-100 flex flex-col justify-between shadow-lg">
                         <div>
-                          <div className="flex justify-between items-start mb-1">
-                            <h3 className="font-black text-xl text-gray-900 group-hover:text-blue-600 transition-colors">{emp.name}</h3>
-                            <span className={`text-[9px] px-2 py-0.5 rounded-full font-black ${emp.company === 'CAMPLUVAS' ? 'bg-blue-100 text-blue-600' : 'bg-purple-100 text-purple-600'}`}>
-                              {emp.company}
-                            </span>
-                          </div>
+                          <h3 className="font-black text-xl text-gray-900">{emp.name}</h3>
                           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{emp.role}</p>
                         </div>
                         <button onClick={() => { setSelectedEmployeeDetail(emp); setEditFormData(emp); setIsEditingEmployee(false); }} className="mt-4 py-3 bg-gray-50 rounded-xl text-xs font-black uppercase flex items-center justify-center gap-2 hover:bg-gray-900 hover:text-white transition-all shadow-sm">
@@ -465,19 +434,12 @@ const App: React.FC = () => {
                         </button>
                       </div>
                     ))}
-                    {filteredEmployees.length === 0 && (
-                      <div className="col-span-full py-20 text-center border-2 border-dashed border-gray-300 rounded-3xl bg-white/30">
-                        <p className="text-gray-600 font-bold uppercase tracking-widest">Nenhum colaborador encontrado.</p>
-                      </div>
-                    )}
                  </div>
                </div>
             )}
             {activeView === 'PAYROLL_HISTORY' && (
               <div className="space-y-6">
-                <header className="flex justify-between items-center">
-                  <h1 className="text-3xl font-black text-gray-900">Histórico</h1>
-                </header>
+                <h1 className="text-3xl font-black text-gray-900">Histórico</h1>
                 <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-xl">
                    <table className="w-full text-left">
                      <thead className="bg-gray-50 text-gray-500 text-[10px] uppercase font-black tracking-widest">
@@ -491,18 +453,13 @@ const App: React.FC = () => {
                         {payrollRecords.map(record => {
                           const emp = employees.find(e => e.id === record.employeeId);
                           return (
-                            <tr key={record.id} className="hover:bg-gray-50 transition-colors">
-                              <td className="px-6 py-4 font-black text-gray-900">{emp?.company}</td>
-                              <td className="px-6 py-4 text-gray-600">{emp?.name}</td>
-                              <td className="px-6 py-4 font-mono font-bold text-blue-600">{record.closingDate}</td>
+                            <tr key={record.id}>
+                              <td className="px-6 py-4 font-black">{emp?.company}</td>
+                              <td className="px-6 py-4">{emp?.name}</td>
+                              <td className="px-6 py-4 text-blue-600 font-bold">{record.closingDate}</td>
                             </tr>
                           );
                         })}
-                        {payrollRecords.length === 0 && (
-                          <tr>
-                            <td colSpan={3} className="px-6 py-10 text-center text-gray-400 italic">Sem registros históricos.</td>
-                          </tr>
-                        )}
                      </tbody>
                    </table>
                 </div>
@@ -513,155 +470,27 @@ const App: React.FC = () => {
       </main>
 
       {selectedEmployeeDetail && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-md">
           <div className="bg-white border border-gray-200 w-full max-w-5xl rounded-[2.5rem] overflow-hidden flex flex-col max-h-[90vh] shadow-2xl">
-            {/* Header Modal */}
             <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <div className="flex-1">
-                <h2 className="text-3xl font-black text-gray-900 truncate">{isEditingEmployee ? 'Editando Colaborador' : selectedEmployeeDetail.name}</h2>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="text-xs text-gray-400 font-bold uppercase tracking-widest">
-                    ID: {selectedEmployeeDetail.id.slice(0, 8)}...
-                  </span>
-                  <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
-                  <span className="text-xs text-blue-600 font-black uppercase tracking-widest">
-                    {selectedEmployeeDetail.company}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                {!isEditingEmployee ? (
-                  <button 
-                    onClick={() => setIsEditingEmployee(true)}
-                    className="p-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-white transition-all shadow-lg flex items-center gap-2 font-bold text-xs uppercase"
-                    title="Editar Cadastro"
-                  >
-                    <Pencil size={18} /> <span className="hidden md:inline">Editar</span>
-                  </button>
-                ) : (
-                  <>
-                    <button 
-                      onClick={() => setIsEditingEmployee(false)}
-                      className="p-3 bg-gray-200 hover:bg-gray-300 rounded-xl text-gray-700 transition-all flex items-center gap-2 font-bold text-xs uppercase"
-                      title="Cancelar"
-                    >
-                      <RotateCcw size={18} /> <span className="hidden md:inline">Cancelar</span>
-                    </button>
-                    <button 
-                      onClick={handleUpdateEmployee}
-                      className="p-3 bg-green-600 hover:bg-green-500 rounded-xl text-white transition-all shadow-lg flex items-center gap-2 font-bold text-xs uppercase"
-                      title="Salvar Alterações"
-                    >
-                      <Save size={18} /> <span className="hidden md:inline">Salvar</span>
-                    </button>
-                  </>
-                )}
-                <div className="w-px h-8 bg-gray-200 mx-1"></div>
-                <button 
-                  onClick={() => { setSelectedEmployeeDetail(null); setIsEditingEmployee(false); }} 
-                  className="p-3 hover:bg-red-50 text-gray-400 hover:text-red-600 rounded-xl transition-all"
-                >
-                  <X size={24} />
-                </button>
+              <h2 className="text-3xl font-black text-gray-900">{isEditingEmployee ? 'Editando' : selectedEmployeeDetail.name}</h2>
+              <div className="flex gap-3">
+                <button onClick={() => { setSelectedEmployeeDetail(null); setIsEditingEmployee(false); }} className="p-3 hover:bg-red-50 text-gray-400 rounded-xl"><X size={24} /></button>
               </div>
             </div>
-
-            {/* Content Modal */}
-            <div className="p-8 overflow-y-auto flex-1 space-y-12 bg-white">
-               {/* Seção Contratual */}
-               <section>
-                 <div className="flex items-center gap-2 mb-6">
-                   <Briefcase size={16} className="text-gray-900" />
-                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400">Dados do Contrato</h3>
-                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="company" label="Empresa" value={isEditingEmployee ? editFormData?.company || '' : selectedEmployeeDetail.company} />
-                    <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="role" label="Função / Cargo" value={isEditingEmployee ? editFormData?.role || '' : selectedEmployeeDetail.role} />
-                    <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="admissionDate" label="Data Admissão" value={isEditingEmployee ? editFormData?.admissionDate || '' : selectedEmployeeDetail.admissionDate} />
-                    <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="dismissalDate" label="Data Demissão" value={isEditingEmployee ? editFormData?.dismissalDate || '' : selectedEmployeeDetail.dismissalDate} />
-                 </div>
+            <div className="p-8 overflow-y-auto flex-1 space-y-12">
+               <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <DetailItem label="Empresa" value={selectedEmployeeDetail.company} />
+                  <DetailItem label="Cargo" value={selectedEmployeeDetail.role} />
+                  <DetailItem label="Admissão" value={selectedEmployeeDetail.admissionDate} />
+                  <DetailItem label="CPF" value={selectedEmployeeDetail.cpf} />
+                  <DetailItem label="RG" value={selectedEmployeeDetail.rg} />
+                  <DetailItem label="PIS" value={selectedEmployeeDetail.pis} />
                </section>
-
-               {/* Seção Pessoal */}
-               <section>
-                 <div className="flex items-center gap-2 mb-6">
-                   <User size={16} className="text-gray-900" />
-                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400">Informações Pessoais</h3>
-                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="md:col-span-2">
-                      <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="name" label="Nome Completo" value={isEditingEmployee ? editFormData?.name || '' : selectedEmployeeDetail.name} />
-                    </div>
-                    <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="birthDate" label="Nascimento" value={isEditingEmployee ? editFormData?.birthDate || '' : selectedEmployeeDetail.birthDate} />
-                    <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="fatherName" label="Nome do Pai" value={isEditingEmployee ? editFormData?.fatherName || '' : selectedEmployeeDetail.fatherName} />
-                    <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="motherName" label="Nome da Mãe" value={isEditingEmployee ? editFormData?.motherName || '' : selectedEmployeeDetail.motherName} />
-                    <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="phone" label="Telefone / Celular" value={isEditingEmployee ? editFormData?.phone || '' : selectedEmployeeDetail.phone} />
-                 </div>
+               <section className="bg-gray-50 p-8 rounded-[2rem] border border-gray-200 grid grid-cols-2 gap-8">
+                  <DetailItem label="Salário Base" value={selectedEmployeeDetail.salary} type="number" />
+                  <DetailItem label="Acúmulo" value={selectedEmployeeDetail.roleAccumulation} type="number" />
                </section>
-
-               {/* Seção Endereço */}
-               <section>
-                 <div className="flex items-center gap-2 mb-6">
-                   <MapPin size={16} className="text-gray-900" />
-                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400">Endereço Residencial</h3>
-                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="md:col-span-2">
-                      <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="address" label="Logradouro" value={isEditingEmployee ? editFormData?.address || '' : selectedEmployeeDetail.address} />
-                    </div>
-                    <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="cep" label="CEP" value={isEditingEmployee ? editFormData?.cep || '' : selectedEmployeeDetail.cep} />
-                    <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="city" label="Cidade" value={isEditingEmployee ? editFormData?.city || '' : selectedEmployeeDetail.city} />
-                    <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="state" label="UF" value={isEditingEmployee ? editFormData?.state || '' : selectedEmployeeDetail.state} />
-                 </div>
-               </section>
-
-               {/* Seção Documentos */}
-               <section>
-                 <div className="flex items-center gap-2 mb-6">
-                   <FileDigit size={16} className="text-gray-900" />
-                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400">Documentação</h3>
-                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="cpf" label="CPF" value={isEditingEmployee ? editFormData?.cpf || '' : selectedEmployeeDetail.cpf} />
-                    <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="rg" label="RG" value={isEditingEmployee ? editFormData?.rg || '' : selectedEmployeeDetail.rg} />
-                    <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="pis" label="PIS" value={isEditingEmployee ? editFormData?.pis || '' : selectedEmployeeDetail.pis} />
-                    <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="ctps" label="CTPS" value={isEditingEmployee ? editFormData?.ctps || '' : selectedEmployeeDetail.ctps} />
-                    <DetailItem isEditing={isEditingEmployee} onChange={handleEditChange} name="voterId" label="Título Eleitor" value={isEditingEmployee ? editFormData?.voterId || '' : selectedEmployeeDetail.voterId} />
-                 </div>
-               </section>
-
-               {/* Seção Financeira */}
-               <section className="bg-gray-50 p-8 rounded-[2.5rem] border border-gray-200">
-                 <div className="flex items-center gap-2 mb-6">
-                   <DollarSign size={18} className="text-gray-900" />
-                   <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gray-900">Remuneração Base Mensal</h3>
-                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <DetailItem 
-                      isEditing={isEditingEmployee} 
-                      onChange={handleEditChange} 
-                      name="salary" 
-                      label="Salário Mensal (R$)" 
-                      type="number"
-                      value={isEditingEmployee ? editFormData?.salary || 0 : selectedEmployeeDetail.salary} 
-                    />
-                    <DetailItem 
-                      isEditing={isEditingEmployee} 
-                      onChange={handleEditChange} 
-                      name="roleAccumulation" 
-                      label="Acúmulo de Função (R$)" 
-                      type="number"
-                      value={isEditingEmployee ? editFormData?.roleAccumulation || 0 : selectedEmployeeDetail.roleAccumulation} 
-                    />
-                 </div>
-               </section>
-            </div>
-            
-            {/* Footer Modal Info */}
-            <div className="p-4 bg-gray-50 border-t border-gray-100 text-center">
-               <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest">
-                 Alterações salariais e de cargo impactam novos fechamentos de folha.
-               </p>
             </div>
           </div>
         </div>
